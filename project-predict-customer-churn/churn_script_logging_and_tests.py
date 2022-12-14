@@ -1,5 +1,6 @@
 import os
 import logging
+from re import A
 from churn_library import CustomerChurn
 import pytest
 
@@ -91,7 +92,20 @@ def test_perform_feature_engineering():
     '''
     test perform_feature_engineering
     '''
+    try:
+        cc = CustomerChurn()
+        X_train, X_test, y_train, y_test = cc.perform_feature_engineering(pytest.df)
 
+        assert X_train.shape[0] == 0.70*pytest.df
+        assert y_train.shape[0] == 0.70*pytest.df
+        assert X_test.shape[0] == 0.30*pytest.df
+        assert y_test.shape[0] == 0.30*pytest.df
+
+        logging.info("Testing perform_feature_engineering: SUCCESS")
+    except FileNotFoundError as err:
+        logging.error(
+            "Testing perform_feature_engineering: The train/test split doesn't appear to work properly")
+        raise err
 
 def test_train_models():
     '''

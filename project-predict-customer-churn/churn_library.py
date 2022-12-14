@@ -79,7 +79,8 @@ class CustomerChurn:
     def encoder_helper(self, df, category_lst, response):
         '''
         helper function to turn each categorical column into a new column with
-        propotion of churn for each category - associated with cell 15 from the notebook
+        propotion of churn for each category - associated with cell 15 from the notebook.
+        Also create the Churn column from the Attrition_Flag column.
 
         input:
                 df: pandas dataframe
@@ -89,6 +90,8 @@ class CustomerChurn:
         output:
                 df: pandas dataframe with new columns for
         '''
+        df['Churn'] = df['Attrition_Flag'].apply(lambda val: 0 if val == "Existing Customer" else 1)
+        
 
         for col in category_lst:
             new_col_vals = []

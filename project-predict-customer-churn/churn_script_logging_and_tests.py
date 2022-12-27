@@ -2,13 +2,13 @@ import os
 import logging
 from churn_library import CustomerChurn
 import pytest
+import math
 
 logging.basicConfig(
     filename='./logs/churn_library.log',
     level=logging.INFO,
     filemode='w',
     format='%(name)s - %(levelname)s - %(message)s')
-
 
 def test_import():
     '''
@@ -93,18 +93,20 @@ def test_perform_feature_engineering():
     '''
     try:
         cc = CustomerChurn()
-        X_train, X_test, y_train, y_test = cc.perform_feature_engineering(pytest.df)
+        X_train, X_test, y_train, y_test = cc.perform_feature_engineering(
+            pytest.df, response='Churn')
 
-        assert X_train.shape[0] == 0.70*pytest.df
-        assert y_train.shape[0] == 0.70*pytest.df
-        assert X_test.shape[0] == 0.30*pytest.df
-        assert y_test.shape[0] == 0.30*pytest.df
+        assert X_train.shape[0] == math.floor(0.70 * pytest.df.shape[0])
+        assert y_train.shape[0] == math.floor(0.70 * pytest.df.shape[0])
+        assert X_test.shape[0] == math.ceil(0.30 * pytest.df.shape[0])
+        assert y_test.shape[0] == math.ceil(0.30 * pytest.df.shape[0])
 
         logging.info("Testing perform_feature_engineering: SUCCESS")
     except AssertionError as err:
         logging.error(
             "Testing perform_feature_engineering: The train/test split doesn't appear to work properly")
         raise err
+
 
 def test_train_models():
     '''

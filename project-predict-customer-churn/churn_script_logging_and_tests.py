@@ -1,6 +1,5 @@
 import os
 import logging
-from re import A
 from churn_library import CustomerChurn
 import pytest
 
@@ -102,7 +101,7 @@ def test_perform_feature_engineering():
         assert y_test.shape[0] == 0.30*pytest.df
 
         logging.info("Testing perform_feature_engineering: SUCCESS")
-    except FileNotFoundError as err:
+    except AssertionError as err:
         logging.error(
             "Testing perform_feature_engineering: The train/test split doesn't appear to work properly")
         raise err

@@ -6,10 +6,10 @@ Date: November 2022
 
 # import libraries
 import joblib
-import shap
 import pandas as pd
 from matplotlib import pyplot as plt
 import seaborn as sns
+import numpy as np
 
 from sklearn.preprocessing import normalize
 from sklearn.model_selection import train_test_split
@@ -71,7 +71,7 @@ class CustomerChurn:
         df.plot.scatter(x='Customer_Age', y='Credit_Limit')
         plt.savefig("./images/eda/customer_age_credit_limit_relationship.png")
 
-        plt.figure(figsize=(20, 10))
+        plt.figure(figsize=(20, 15))
         numeric_types = [
             'int16',
             'int32',
@@ -175,7 +175,7 @@ class CustomerChurn:
         """"
         Auxiliary function to plot and save roc curves
         """
-
+        plt.clf()
         plt.figure(figsize=(20, 10))
         fpr, tpr, thresholds = roc_curve(y, pred)
         roc_auc = auc(fpr, tpr)
@@ -205,22 +205,8 @@ class CustomerChurn:
         output:
                 None
         '''
-        # scores
-        # report_test_rf =  classification_report(y_test, y_test_preds_rf, output_dict=True)
-        # report_train_rf = classification_report(y_train, y_train_preds_rf, output_dict=True)
 
-        # report_test_lr = classification_report(y_test, y_test_preds_lr, output_dict=True)
-        # report_train_lr = classification_report(y_train, y_train_preds_lr, output_dict=True)
-
-        # with open('./results/classification_report.txt', 'w') as f:
-        #     print('Train RF:', report_train_rf, file=f)
-        #     print('Test RF:', report_test_rf, file=f)
-
-        #     print('Train LR:', report_train_lr, file=f)
-        #     print('Test LR:', report_test_lr, file=f)
-
-        # f.close()
-
+        plt.clf()
         plt.rc('figure', figsize=(5, 5))
         # plt.text(0.01, 0.05, str(model.summary()), {'fontsize': 12}) old
         # approach
@@ -233,7 +219,9 @@ class CustomerChurn:
         plt.text(0.01, 0.7, str(classification_report(y_train, y_train_preds_rf)), {
                  'fontsize': 10}, fontproperties='monospace')  # approach improved by OP -> monospace!
         plt.axis('off')
+        plt.savefig("./images/results/classification_report_rf.png")
 
+        plt.clf()
         plt.rc('figure', figsize=(5, 5))
         plt.text(0.01, 1.25, str('Logistic Regression Train'),
                  {'fontsize': 10}, fontproperties='monospace')
@@ -244,6 +232,7 @@ class CustomerChurn:
         plt.text(0.01, 0.7, str(classification_report(y_test, y_test_preds_lr)), {
                  'fontsize': 10}, fontproperties='monospace')  # approach improved by OP -> monospace!
         plt.axis('off')
+        plt.savefig("./images/results/classification_report_lr.png")
 
         self._roc_curve_plot(
             y_test,
@@ -280,7 +269,28 @@ class CustomerChurn:
         output:
                 None
         '''
-        pass
+        # Calculate feature importances
+        importances = model.best_estimator_.feature_importances_
+        # Sort feature importances in descending order
+        indices = np.argsort(importances)[::-1]
+
+        # Rearrange feature names so they match the sorted feature importances
+        names = [X_data.columns[i] for i in indices]
+
+        # Create plot
+        plt.figure(figsize=(20, 10))
+
+        # Create plot title
+        plt.title("Feature Importance")
+        plt.ylabel('Importance')
+
+        # Add bars
+        plt.bar(range(X_data.shape[1]), importances[indices])
+
+        # Add feature names as x-axis labels
+        plt.xticks(range(X_data.shape[1]), names, rotation=90)
+
+        plt.savefig(output_pth)
 
     def train_models(self, X_train, X_test, y_train, y_test):
         '''
@@ -327,6 +337,9 @@ class CustomerChurn:
             y_test_preds_rf
 
         )
+
+        self.feature_importance_plot(
+            cv_rfc, X_train, "./images/results/feature_importance_rf.png")
 
         # save best model
         joblib.dump(cv_rfc.best_estimator_, './models/rfc_model.pkl')

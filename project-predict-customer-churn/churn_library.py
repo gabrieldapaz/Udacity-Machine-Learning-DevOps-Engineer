@@ -11,7 +11,6 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 import numpy as np
 
-from sklearn.preprocessing import normalize
 from sklearn.model_selection import train_test_split
 
 from sklearn.linear_model import LogisticRegression
@@ -33,7 +32,7 @@ class CustomerChurn:
     """
 
     def __init__(self):
-        pass
+        self.path = None
 
     def import_data(self, path):
         '''
@@ -42,33 +41,33 @@ class CustomerChurn:
         input:
                 path: a path to the csv
         output:
-                df: pandas dataframe
+                dataframe: pandas dataframe
         '''
         self.path = path
-        df = pd.read_csv(path, index_col=0)
+        dataframe = pd.read_csv(path, index_col=0)
 
-        return df
+        return dataframe
 
-    def perform_eda(self, df):
+    def perform_eda(self, dataframe):
         '''
-        perform eda on df and save figures to images folder
+        perform eda on dataframe and save figures to images folder
         input:
-                df: pandas dataframe
+                dataframe: pandas dataframe
 
         output:
                 None
         '''
 
         plt.figure(figsize=(20, 10))
-        df['Customer_Age'].hist()
+        dataframe['Customer_Age'].hist()
         plt.savefig("./images/eda/customer_age_distribution.png")
 
         plt.figure(figsize=(20, 10))
-        df.Marital_Status.value_counts(normalize=True).plot(kind='bar')
+        dataframe.Marital_Status.value_counts(normalize=True).plot(kind='bar')
         plt.savefig("./images/eda/marital_status_distribution.png")
 
         plt.figure(figsize=(20, 10))
-        df.plot.scatter(x='Customer_Age', y='Credit_Limit')
+        dataframe.plot.scatter(x='Customer_Age', y='Credit_Limit')
         plt.savefig("./images/eda/customer_age_credit_limit_relationship.png")
 
         plt.figure(figsize=(20, 15))
@@ -80,49 +79,51 @@ class CustomerChurn:
             'float32',
             'float64']
         sns.heatmap(
-            df.select_dtypes(
+            dataframe.select_dtypes(
                 include=numeric_types).corr(),
             annot=False,
             cmap='Dark2_r',
             linewidths=2)
         plt.savefig("./images/eda/corr_matrix.png")
 
-    def encoder_helper(self, df, category_lst, response):
+    def encoder_helper(self, dataframe, category_lst, response):
         '''
         helper function to turn each categorical column into a new column with
         propotion of churn for each category - associated with cell 15 from the notebook.
         Also create the Churn column from the Attrition_Flag column.
 
         input:
-                df: pandas dataframe
+                dataframe: pandas dataframe
                 category_lst: list of columns that contain categorical features
-                response: string of response name [optional argument that could be used for naming variables or index y column]
+                response: string of response name [optional argument that could be used
+                          for naming variables or index y column]
 
         output:
-                df: pandas dataframe with new columns for
+                dataframe: pandas dataframe with new columns for
         '''
 
-        df['Churn'] = df['Attrition_Flag'].apply(
+        dataframe['Churn'] = dataframe['Attrition_Flag'].apply(
             lambda val: 0 if val == "Existing Customer" else 1)
 
         for col in category_lst:
             new_col_vals = []
-            groups = df.groupby(col).mean()[response]
-            for val in df[col]:
+            groups = dataframe.groupby(col).mean()[response]
+            for val in dataframe[col]:
                 new_col_vals.append(groups.loc[val])
-            df[col + "_" + response] = new_col_vals
+            dataframe[col + "_" + response] = new_col_vals
 
-        return df
+        return dataframe
 
-    def perform_feature_engineering(self, df, response):
+    def perform_feature_engineering(self, dataframe, response):
         '''
         input:
-                df: pandas dataframe
-                response: string of response name [optional argument that could be used for naming variables or index y column]
+                dataframe: pandas dataframe
+                response: string of response name [optional argument that could
+                be used for naming variables or index y column]
 
         output:
-                X_train: X training data
-                X_test: X testing data
+                x_train: X training data
+                x_test: X testing data
                 y_train: y training data
                 y_test: y testing data
         '''
@@ -135,12 +136,12 @@ class CustomerChurn:
             'Card_Category'
         ]
 
-        df = self.encoder_helper(
-            df,
+        dataframe = self.encoder_helper(
+            dataframe,
             category_lst=category_lst,
             response=response)
 
-        y = df['Churn']
+        y = dataframe['Churn']
         X = pd.DataFrame()
 
         keep_cols = [
@@ -164,20 +165,28 @@ class CustomerChurn:
             'Income_Category_Churn',
             'Card_Category_Churn']
 
-        X[keep_cols] = df[keep_cols]
+        X[keep_cols] = dataframe[keep_cols]
 
-        X_train, X_test, y_train, y_test = train_test_split(
+        x_train, x_test, y_train, y_test = train_test_split(
             X, y, test_size=0.3, random_state=42)
 
-        return X_train, X_test, y_train, y_test
+        return x_train, x_test, y_train, y_test
 
     def _roc_curve_plot(self, y, pred, estimator_name, path_filename):
-        """"
+        """
         Auxiliary function to plot and save roc curves
+        input:
+                y: list of ground truth
+                pred: list of prediction
+                estimator_name: estimator name
+                path_filename: path where the images will be saved
+
+        output:
+                None
         """
         plt.clf()
         plt.figure(figsize=(20, 10))
-        fpr, tpr, thresholds = roc_curve(y, pred)
+        fpr, tpr, _ = roc_curve(y, pred)
         roc_auc = auc(fpr, tpr)
         display = RocCurveDisplay(fpr=fpr, tpr=tpr, roc_auc=roc_auc,
                                   estimator_name=estimator_name)
@@ -213,11 +222,11 @@ class CustomerChurn:
         plt.text(0.01, 1.25, str('Random Forest Train'), {
                  'fontsize': 10}, fontproperties='monospace')
         plt.text(0.01, 0.05, str(classification_report(y_test, y_test_preds_rf)), {
-                 'fontsize': 10}, fontproperties='monospace')  # approach improved by OP -> monospace!
+                 'fontsize': 10}, fontproperties='monospace')
         plt.text(0.01, 0.6, str('Random Forest Test'), {
                  'fontsize': 10}, fontproperties='monospace')
         plt.text(0.01, 0.7, str(classification_report(y_train, y_train_preds_rf)), {
-                 'fontsize': 10}, fontproperties='monospace')  # approach improved by OP -> monospace!
+                 'fontsize': 10}, fontproperties='monospace')
         plt.axis('off')
         plt.savefig("./images/results/classification_report_rf.png")
 
@@ -226,11 +235,11 @@ class CustomerChurn:
         plt.text(0.01, 1.25, str('Logistic Regression Train'),
                  {'fontsize': 10}, fontproperties='monospace')
         plt.text(0.01, 0.05, str(classification_report(y_train, y_train_preds_lr)), {
-                 'fontsize': 10}, fontproperties='monospace')  # approach improved by OP -> monospace!
+                 'fontsize': 10}, fontproperties='monospace')
         plt.text(0.01, 0.6, str('Logistic Regression Test'), {
                  'fontsize': 10}, fontproperties='monospace')
         plt.text(0.01, 0.7, str(classification_report(y_test, y_test_preds_lr)), {
-                 'fontsize': 10}, fontproperties='monospace')  # approach improved by OP -> monospace!
+                 'fontsize': 10}, fontproperties='monospace')
         plt.axis('off')
         plt.savefig("./images/results/classification_report_lr.png")
 
@@ -258,12 +267,12 @@ class CustomerChurn:
             estimator_name="Logistic Regression",
             path_filename="./images/results/roc_curve_lr_train.png")
 
-    def feature_importance_plot(self, model, X_data, output_pth):
+    def feature_importance_plot(self, model, x_data, output_pth):
         '''
         creates and stores the feature importances in pth
         input:
                 model: model object containing feature_importances_
-                X_data: pandas dataframe of X values
+                x_data: pandas dataframe of X values
                 output_pth: path to store the figure
 
         output:
@@ -275,7 +284,7 @@ class CustomerChurn:
         indices = np.argsort(importances)[::-1]
 
         # Rearrange feature names so they match the sorted feature importances
-        names = [X_data.columns[i] for i in indices]
+        names = [x_data.columns[i] for i in indices]
 
         # Create plot
         plt.figure(figsize=(20, 10))
@@ -285,19 +294,19 @@ class CustomerChurn:
         plt.ylabel('Importance')
 
         # Add bars
-        plt.bar(range(X_data.shape[1]), importances[indices])
+        plt.bar(range(x_data.shape[1]), importances[indices])
 
         # Add feature names as x-axis labels
-        plt.xticks(range(X_data.shape[1]), names, rotation=90)
+        plt.xticks(range(x_data.shape[1]), names, rotation=90)
 
         plt.savefig(output_pth)
 
-    def train_models(self, X_train, X_test, y_train, y_test):
+    def train_models(self, x_train, x_test, y_train, y_test):
         '''
         train, store model results: images + scores, and store models
         input:
-                X_train: X training data
-                X_test: X testing data
+                x_train: X training data
+                x_test: X testing data
                 y_train: y training data
                 y_test: y testing data
         output:
@@ -318,15 +327,15 @@ class CustomerChurn:
         }
 
         cv_rfc = GridSearchCV(estimator=rfc, param_grid=param_grid, cv=5)
-        cv_rfc.fit(X_train, y_train)
+        cv_rfc.fit(x_train, y_train)
 
-        lrc.fit(X_train, y_train)
+        lrc.fit(x_train, y_train)
 
-        y_train_preds_rf = cv_rfc.best_estimator_.predict(X_train)
-        y_test_preds_rf = cv_rfc.best_estimator_.predict(X_test)
+        y_train_preds_rf = cv_rfc.best_estimator_.predict(x_train)
+        y_test_preds_rf = cv_rfc.best_estimator_.predict(x_test)
 
-        y_train_preds_lr = lrc.predict(X_train)
-        y_test_preds_lr = lrc.predict(X_test)
+        y_train_preds_lr = lrc.predict(x_train)
+        y_test_preds_lr = lrc.predict(x_test)
 
         self.classification_report_image(
             y_train,
@@ -339,7 +348,7 @@ class CustomerChurn:
         )
 
         self.feature_importance_plot(
-            cv_rfc, X_train, "./images/results/feature_importance_rf.png")
+            cv_rfc, x_train, "./images/results/feature_importance_rf.png")
 
         # save best model
         joblib.dump(cv_rfc.best_estimator_, './models/rfc_model.pkl')
@@ -347,9 +356,10 @@ class CustomerChurn:
 
 
 if __name__ == "__main__":
-    customer_churn = CustomerChurn()
-    df = customer_churn.import_data("./data/bank_data.csv")
-    customer_churn.perform_eda(df)
-    X_train, X_test, y_train, y_test = customer_churn.perform_feature_engineering(
-        df, response='Churn')
-    customer_churn.train_models(X_train, X_test, y_train, y_test)
+    pass
+    # customer_churn = CustomerChurn()
+    # dataframe = customer_churn.import_data("./data/bank_data.csv")
+    # customer_churn.perform_eda(dataframe)
+    # x_train, x_test, y_train, y_test = customer_churn.perform_feature_engineering(
+    #     dataframe, response='Churn')
+    # customer_churn.train_models(x_train, x_test, y_train, y_test)

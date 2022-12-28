@@ -112,6 +112,18 @@ def test_train_models():
     '''
     test train_models
     '''
+    try:
+        cc = CustomerChurn()
+        X_train, X_test, y_train, y_test = cc.perform_feature_engineering(pytest.df, response='Churn')
+        cc.train_models(X_train, X_test, y_train, y_test)  
+
+        cwd = os.path.abspath(os.getcwd())
+        assert len(os.listdir(cwd + '/images/results/')) == 7
+        logging.info("Testing train_models: SUCCESS")
+    except FileNotFoundError as err:
+        logging.error(
+            "Testing train_models: The directory doesn't appear to exist")
+        raise err
 
 
 if __name__ == "__main__":

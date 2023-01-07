@@ -14,17 +14,20 @@ The data is available at [Kaggle](https://www.kaggle.com/datasets/sakshigoyal7/c
 
 ```
 .
-├── churn_notebook.ipynb # Contains the code to be refactored (Was given)
-├── churn_library.py     # Define the functions (Was ToDo)
-├── churn_script_logging_and_tests.py # Finish tests and logs (Was ToDo)
-├── README.md            # Provides project overview, and instructions to use the code
-├── data                 # Read this data (You will need to download from Kaggle)
-│   └── bank_data.csv
-├── images               # Store EDA results 
+├── images               # Store EDA results
 │   ├── eda
 │   └── results
 ├── logs                 # Store logs
-└── models               # Store models
+├── models               # Store models
+├── README.md            # Provides project overview, and instructions to use the code
+├── churn_library.py     # Define the functions (Was ToDo)
+├── churn_notebook.ipynb # Contains the code to be refactored (Was given)
+├── churn_script_logging_and_tests.py # Finish tests and logs (Was ToDo)
+├── conftest.py
+├── pytest.ini
+├── requirements_py3.8.txt
+└── data                 # Read this data (You will need to download from Kaggle)
+    └── bank_data.csv
 
 ```
 
@@ -36,10 +39,41 @@ The goal is to avoid dependency conflicts.
 ```
 python3 -m venv /path/to/new/virtual/environment
 ```
-You can check more details on virtual envs and how to activate them in this [link](https://docs.python.org/3/library/venv.html)
+You can check more details on virtual environments and how to activate them in this [link](https://docs.python.org/3/library/venv.html).
 
 2. Install the requirements
 
 ```
-pip3 install -r /path/to/requirements.txt
+pip3 install -r requirements_py3.8.txt
+```
+
+3. Run the code
+
+You will need to modify the if __name__ == "__main__" part of the code to use the methods you want.
+
+```
+python3 churn_library.py
+```
+
+4. Test the code
+
+After modifying the scripts is good practice to run the tests to check if everything is performing as expected.
+You can check the results of the tests on the terminal and in the logs/ folder.
+
+```
+python3 churn_script_logging_and_tests.py
+```
+
+**Code Quality**
+
+You can modify the code, but after is a good practice to ensure that the code is following the PEP8 standards.
+
+Check code quality score with pylint.
+```
+python3 script.py
+```
+
+autopep8 automatically formats Python code to conform to the PEP 8 style guide.
+```
+autopep8 --in-place --aggressive --aggressive script.py
 ```

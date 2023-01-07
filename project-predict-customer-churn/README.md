@@ -70,10 +70,12 @@ You can modify the code, but after is a good practice to ensure that the code is
 
 Check code quality score with pylint.
 ```
-python3 script.py
+pylint churn_library.py
+pylint churn_script_logging_and_tests.py
 ```
 
 autopep8 automatically formats Python code to conform to the PEP 8 style guide.
 ```
-autopep8 --in-place --aggressive --aggressive script.py
+autopep8 --in-place --aggressive --aggressive churn_script_logging_and_tests.py
+autopep8 --in-place --aggressive --aggressive churn_library.py
 ```
